@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Toán</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: #fff;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            /* Bỏ overflow: hidden để sticky hoạt động */
+            overflow: visible;
+            position: relative;
+        }
+
+        /* === HEADER — STICKY === */
+        .quiz-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: #fff;
+            border-bottom: 2px solid #e8e8e8;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .quiz-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .quiz-counter {
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            background: #f0f0f0;
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        .btn-submit {
+            background: #2ecc40;
+            color: #fff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-submit:hover {
+            background: #27ae35;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46,204,64,0.4);
+        }
+
+        /* === QUESTION AREA === */
+        .question-area {
+            padding: 20px;
+        }
+
+        .question-box {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.3s;
+            background: #fff;
+        }
+
+        .question-box.active {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+
+        .question-text {
+            font-size: 17px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #eee;
+            line-height: 1.5;
+        }
+
+        .question-text .q-number {
+            color: #3498db;
+            font-weight: 700;
+        }
+
+        .options-list {
+            list-style: none;
+        }
+
+        .option-item {
+            margin-bottom: 10px;
+        }
+
+        .option-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 15px;
+            color: #444;
+        }
+
+        .option-label:hover {
+            border-color: #3498db;
+            background: #f0f7ff;
+        }
+
+        .option-label input[type="radio"] {
+            display: none;
+        }
+
+        .option-label .radio-custom {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .option-label .radio-custom::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3498db;
+            transform: scale(0);
+            transition: transform 0.2s;
+        }
+
+        .option-label input[type="radio"]:checked ~ .radio-custom {
+            border-color: #3498db;
+        }
+
+        .option-label input[type="radio"]:checked ~ .radio-custom::after {
+            transform: scale(1);
+        }
+
+        .option-label.selected {
+            border-color: #3498db;
+            background: #eaf4fd;
+        }
+
+        .option-letter {
+            font-weight: 700;
+            margin-right: 8px;
+            color: #666;
+        }
+
+        /* === QUESTION ACTIONS === */
+        .question-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid #eee;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            border-color: #999;
+        }
+
+        .action-btn.flagged {
+            border-color: #f1c40f;
+            background: #fffde7;
+            color: #e6a817;
+        }
+
+        .action-btn.skipped {
+            border-color: #e74c3c;
+            background: #fdeaea;
+            color: #c0392b;
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* === NAVIGATION === */
+        .navigation {
+            display: flex;
+            gap: 12px;
+            padding: 0 20px 16px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #444;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover {
+            border-color: #3498db;
+            color: #3498db;
+            background: #f0f7ff;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .nav-btn:disabled:hover {
+            border-color: #ddd;
+            color: #444;
+            background: #fff;
+        }
+
+        /* === QUESTION GRID === */
+        .question-grid {
+            padding: 16px 20px 20px;
+            border-top: 2px solid #e8e8e8;
+        }
+
+        .grid-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+
+        .grid-item {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s;
+            color: #555;
+            background: #fafafa;
+            position: relative;
+        }
+
+        .grid-item:hover {
+            transform: scale(1.08);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Current - Viền ô xanh */
+        .grid-item.current {
+            border: 3px solid #0070f3 !important;
+            box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.35) !important;
+            font-weight: 800;
+        }
+
+        .grid-item.current:not(.answered):not(.skipped):not(.flagged) {
+            background: #ffffff;
+            color: #0070f3;
+        }
+
+        /* Answered - Làm xong màu xanh lá cây */
+        .grid-item.answered {
+            border-color: #27ae60;
+            background: #2ecc40;
+            color: #ffffff;
+        }
+
+        /* Skipped - Bỏ qua tô đỏ */
+        .grid-item.skipped {
+            border-color: #c0392b;
+            background: #e74c3c;
+            color: #ffffff;
+        }
+
+        /* Flagged - Đánh dấu xem lại màu vàng */
+        .grid-item.flagged {
+            border-color: #d4ac0d;
+            background: #f1c40f;
+            color: #222222;
+        }
+
+        .grid-item.flagged::after {
+            content: '📌';
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            font-size: 11px;
+        }
+
+        /* === LEGEND === */
+        .legend {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            padding: 12px 20px 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .legend-dot.blue { border: 3px solid #0070f3; background: #ffffff; }
+        .legend-dot.green { background: #2ecc40; border: 1px solid #27ae60; }
+        .legend-dot.red { background: #e74c3c; border: 1px solid #c0392b; }
+        .legend-dot.yellow { background: #f1c40f; border: 1px solid #d4ac0d; }
+
+        /* === MODAL OVERLAY === */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .modal-text {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 32px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid;
+        }
+
+        .modal-btn.back {
+            border-color: #ddd;
+            background: #fff;
+            color: #666;
+        }
+
+        .modal-btn.back:hover {
+            border-color: #bbb;
+            background: #f5f5f5;
+        }
+
+        .modal-btn.ok {
+            border-color: #2ecc40;
+            background: #2ecc40;
+            color: #fff;
+        }
+
+        .modal-btn.ok:hover {
+            background: #27ae35;
+            border-color: #27ae35;
+        }
+
+        /* === SUCCESS SCREEN === */
+        .success-screen {
+            display: none;
+            text-align: center;
+            padding: 60px 30px;
+        }
+
+        .success-screen.show {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            animation: bounce 0.6s;
+        }
+
+        .success-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #2ecc40;
+            margin-bottom: 10px;
+        }
+
+        .success-subtitle {
+            font-size: 16px;
+            color: #888;
+            margin-bottom: 36px;
+        }
+
+        .success-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .success-btn {
+            padding: 14px 36px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid;
+        }
+
+        .success-btn.score {
+            background: #2ecc40;
+            border-color: #2ecc40;
+            color: #fff;
+        }
+
+        .success-btn.score:hover {
+            background: #27ae35;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46,204,64,0.4);
+        }
+
+        .success-btn.next {
+            background: #fff;
+            border-color: #ddd;
+            color: #555;
+        }
+
+        .success-btn.next:hover {
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        /* === MAIN CONTENT (to hide/show) === */
+        .quiz-main {
+            display: block;
+        }
+
+        .quiz-main.hide {
+            display: none;
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .question-area.slide-in {
+            animation: slideIn 0.3s ease;
+        }
+
+        /* === SCORE MODAL === */
+        .score-details {
+            text-align: left;
+            margin: 16px 0;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #555;
+            border-bottom: 1px solid #eee;
+        }
+
+        .score-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .score-row .label {
+            color: #888;
+        }
+
+        /* === TIMER (bonus) === */
+        .timer {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .timer svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* === Responsive: padding top cho body trên mobile === */
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+            }
+            .quiz-container {
+                border-radius: 0;
+            }
+            .quiz-header {
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <!-- HEADER -->
+    <div class="quiz-header" id="quizHeader">
+        <div class="quiz-title">📝 Bài Kiểm Tra</div>
+        <div class="quiz-counter" id="quizCounter">1/12</div>
+        <button class="btn-submit" onclick="showSubmitModal()">Nộp Bài</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="quiz-main" id="quizMain">
+        <!-- QUESTION -->
+        <div class="question-area" id="questionArea">
+            <div class="question-box active" id="questionBox">
+                <div class="question-text" id="questionText"></div>
+                <ul class="options-list" id="optionsList"></ul>
+
+                <div class="question-actions">
+                    <button type="button" class="action-btn" id="btnFlag" onclick="toggleFlag()">
+                        <span style="font-size: 16px;">📌</span>
+                        <span id="flagText">Đánh dấu xem lại</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAVIGATION -->
+        <div class="navigation">
+            <button class="nav-btn" id="btnPrev" onclick="prevQuestion()">
+                ← Câu trước
+            </button>
+            <button class="nav-btn" id="btnNext" onclick="nextQuestion()">
+                Câu sau →
+            </button>
+        </div>
+
+        <!-- QUESTION GRID -->
+        <div class="question-grid">
+            <div class="grid-title">Danh sách câu hỏi</div>
+            <div class="grid" id="questionGrid"></div>
+        </div>
+
+        <!-- LEGEND -->
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot blue"></div>Đang làm</div>
+            <div class="legend-item"><div class="legend-dot green"></div>Làm xong</div>
+            <div class="legend-item"><div class="legend-dot red"></div>Bỏ qua</div>
+            <div class="legend-item"><div class="legend-dot yellow"></div>Xem lại</div>
+        </div>
+    </div>
+
+    <!-- SUCCESS SCREEN -->
+    <div class="success-screen" id="successScreen">
+        <div class="success-title">BẠN ĐÃ NỘP BÀI THÀNH CÔNG!</div>
+        <div class="success-buttons">
+            <button class="success-btn score" onclick="showScore()">Xem Điểm</button>
+            <button class="success-btn next" onclick="resetQuiz()">Làm Lại</button>
+        </div>
+    </div>
+</div>
+
+<!-- SUBMIT CONFIRMATION MODAL -->
+<div class="modal-overlay" id="submitModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeSubmitModal()">✕</button>
+        <div class="modal-icon">📋</div>
+        <div class="modal-title">Xác Nhận Nộp Bài</div>
+        <div class="modal-text" id="modalText"></div>
+        <div class="modal-buttons">
+            <button class="modal-btn back" onclick="closeSubmitModal()">Quay lại</button>
+            <button class="modal-btn ok" onclick="confirmSubmit()">Nộp bài</button>
+        </div>
+    </div>
+</div>
+
+<!-- SCORE MODAL -->
+<div class="modal-overlay" id="scoreModal">
+    <div class="modal">
+        <button class="modal-close" onclick="closeScoreModal()">✕</button>
+        <div class="modal-icon">📊</div>
+        <div class="modal-title">Kết Quả Bài Làm</div>
+        <div class="score-details" id="scoreDetails"></div>
+        <div class="modal-buttons">
+            <button class="modal-btn ok" onclick="closeScoreModal()">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // === QUESTION DATA (12 câu toán) ===
+    const questions = [
+        {
+            text: "Giá trị của biểu thức 5 + 3 × 2 là bao nhiêu?",
+            options: ["8", "11", "16", "13"]
+        },
+        {
+            text: "Số nào sau đây là số nguyên tố?",
+            options: ["15", "21", "17", "9"]
+        },
+        {
+            text: "Diện tích hình tròn có bán kính r = 7cm là? (lấy π ≈ 3,14)",
+            options: ["153,86 cm²", "143,86 cm²", "163,86 cm²", "133,86 cm²"]
+        },
+        {
+            text: "Phương trình 2x + 6 = 0 có nghiệm là:",
+            options: ["x = 3", "x = −3", "x = 6", "x = −6"]
+        },
+        {
+            text: "Tổng các góc trong một tam giác bằng bao nhiêu độ?",
+            options: ["90°", "180°", "270°", "360°"]
+        },
+        {
+            text: "Giá trị của √144 là:",
+            options: ["11", "12", "13", "14"]
+        },
+        {
+            text: "Nếu a = 3, b = 4 thì a² + b² bằng bao nhiêu?",
+            options: ["7", "12", "25", "24"]
+        },
+        {
+            text: "Chu vi hình chữ nhật có chiều dài 8cm và chiều rộng 5cm là:",
+            options: ["26 cm", "13 cm", "40 cm", "30 cm"]
+        },
+        {
+            text: "Số thập phân 0,75 tương đương với phân số nào?",
+            options: ["3/4", "7/5", "1/2", "2/3"]
+        },
+        {
+            text: "Kết quả của phép tính (−5) × (−4) là:",
+            options: ["−20", "20", "−9", "9"]
+        },
+        {
+            text: "Thể tích hình hộp chữ nhật có các cạnh 3cm, 4cm, 5cm là:",
+            options: ["12 cm³", "60 cm³", "47 cm³", "35 cm³"]
+        },
+        {
+            text: "ƯCLN (Ước chung lớn nhất) của 12 và 18 là:",
+            options: ["2", "3", "6", "9"]
+        }
+    ];
+
+    const letters = ['A', 'B', 'C', 'D'];
+
+    // === STATE ===
+    let currentQuestion = 0;
+    let answers = new Array(12).fill(null);     // null = chưa làm
+    let flagged = new Array(12).fill(false);     // đánh dấu xem lại
+    let skipped = new Array(12).fill(false);     // bỏ qua
+
+    // === INIT ===
+    function init() {
+        buildGrid();
+        renderQuestion();
+        updateGrid();
+        updateNav();
+    }
+
+    // === BUILD QUESTION GRID ===
+    function buildGrid() {
+        const grid = document.getElementById('questionGrid');
+        grid.innerHTML = '';
+        for (let i = 0; i < 12; i++) {
+            const item = document.createElement('div');
+            item.className = 'grid-item';
+            item.textContent = i + 1;
+            item.onclick = () => goToQuestion(i);
+            grid.appendChild(item);
+        }
+    }
+
+    // === SELECT OPTION (No jitter / no DOM rebuild) ===
+    function selectOption(idx) {
+        answers[currentQuestion] = idx;
+        skipped[currentQuestion] = false;
+
+        const labels = document.querySelectorAll('.option-label');
+        labels.forEach((lbl, i) => {
+            const radio = lbl.querySelector('input[type="radio"]');
+            if (i === idx) {
+                lbl.classList.add('selected');
+                radio.checked = true;
+            } else {
+                lbl.classList.remove('selected');
+                radio.checked = false;
+            }
+        });
+
+        updateGrid();
+    }
+
+    // === RENDER QUESTION ===
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        const questionText = document.getElementById('questionText');
+        const optionsList = document.getElementById('optionsList');
+
+        questionText.innerHTML = `<span class="q-number">Câu ${currentQuestion + 1}:</span> ${q.text}`;
+
+        optionsList.innerHTML = '';
+        q.options.forEach((opt, idx) => {
+            const li = document.createElement('li');
+            li.className = 'option-item';
+
+            const label = document.createElement('label');
+            label.className = 'option-label' + (answers[currentQuestion] === idx ? ' selected' : '');
+            label.onclick = (e) => {
+                e.preventDefault();
+                selectOption(idx);
+            };
+
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = 'q' + currentQuestion;
+            input.value = idx;
+            if (answers[currentQuestion] === idx) input.checked = true;
+
+            const radioCustom = document.createElement('span');
+            radioCustom.className = 'radio-custom';
+
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.textContent = letters[idx] + '.';
+
+            const textSpan = document.createElement('span');
+            textSpan.textContent = opt;
+
+            label.appendChild(input);
+            label.appendChild(radioCustom);
+            label.appendChild(letterSpan);
+            label.appendChild(textSpan);
+            li.appendChild(label);
+            optionsList.appendChild(li);
+        });
+
+        // Update counter
+        document.getElementById('quizCounter').textContent = `${currentQuestion + 1}/12`;
+
+        // Update flag button
+        updateFlagBtn();
+    }
+
+    // === UPDATE FLAG BUTTON ===
+    function updateFlagBtn() {
+        const btnFlag = document.getElementById('btnFlag');
+        const flagText = document.getElementById('flagText');
+        if (flagged[currentQuestion]) {
+            btnFlag.classList.add('flagged');
+            flagText.textContent = 'Bỏ đánh dấu xem lại';
+        } else {
+            btnFlag.classList.remove('flagged');
+            flagText.textContent = 'Đánh dấu xem lại';
+        }
+    }
+
+    // === UPDATE GRID ===
+    function updateGrid() {
+        const items = document.querySelectorAll('.grid-item');
+        items.forEach((item, idx) => {
+            item.className = 'grid-item';
+
+            // Background color states
+            if (flagged[idx]) {
+                item.classList.add('flagged');     // Màu vàng
+            } else if (answers[idx] !== null) {
+                item.classList.add('answered');    // Màu xanh lá cây
+            } else if (skipped[idx]) {
+                item.classList.add('skipped');     // Tô đỏ
+            }
+
+            // Đang làm: Viền ô xanh
+            if (idx === currentQuestion) {
+                item.classList.add('current');
+            }
+        });
+    }
+
+    // === UPDATE NAV BUTTONS ===
+    function updateNav() {
+        document.getElementById('btnPrev').disabled = currentQuestion === 0;
+        document.getElementById('btnNext').disabled = currentQuestion === 11;
+    }
+
+    // === LEAVE CURRENT QUESTION (Auto marks skipped if not answered) ===
+    function leaveCurrentQuestion() {
+        if (answers[currentQuestion] !== null) {
+            skipped[currentQuestion] = false;
+        } else if (flagged[currentQuestion]) {
+            skipped[currentQuestion] = false;
+        } else {
+            skipped[currentQuestion] = true; // Bỏ qua tô đỏ
+        }
+    }
+
+    // === NAVIGATION ===
+    function prevQuestion() {
+        if (currentQuestion > 0) {
+            goToQuestion(currentQuestion - 1);
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestion < 11) {
+            goToQuestion(currentQuestion + 1);
+        }
+    }
+
+    function goToQuestion(idx) {
+        if (idx === currentQuestion) return;
+        leaveCurrentQuestion();
+        currentQuestion = idx;
+        renderQuestion();
+        updateGrid();
+        updateNav();
+    }
+
+    // === FLAG ===
+    function toggleFlag() {
+        flagged[currentQuestion] = !flagged[currentQuestion];
+        if (flagged[currentQuestion]) {
+            skipped[currentQuestion] = false;
+        }
+        updateFlagBtn();
+        updateGrid();
+    }
+
+    // === SUBMIT MODAL ===
+    function showSubmitModal() {
+        leaveCurrentQuestion();
+        updateGrid();
+
+        const answered = answers.filter(a => a !== null).length;
+        const unanswered = 12 - answered;
+        const modalText = document.getElementById('modalText');
+
+        let text = `Bạn đã làm <strong>${answered}/12</strong> câu.`;
+        if (unanswered > 0) {
+            text += `<br>Còn <strong>${unanswered}</strong> câu chưa trả lời.`;
+        }
+        text += `<br><br>Chắc chắn muốn nộp bài?`;
+
+        modalText.innerHTML = text;
+        document.getElementById('submitModal').classList.add('show');
+    }
+
+    function closeSubmitModal() {
+        document.getElementById('submitModal').classList.remove('show');
+    }
+
+    function confirmSubmit() {
+        closeSubmitModal();
+        document.getElementById('quizHeader').style.display = 'none';
+        document.getElementById('quizMain').classList.add('hide');
+        document.getElementById('successScreen').classList.add('show');
+    }
+
+    // === SCORE ===
+    function showScore() {
+        const answered = answers.filter(a => a !== null).length;
+        const skippedCount = skipped.filter((s, i) => s && answers[i] === null && !flagged[i]).length;
+        const flaggedCount = flagged.filter(f => f).length;
+        const unanswered = 12 - answered;
+
+        const details = document.getElementById('scoreDetails');
+        details.innerHTML = `
+            <div class="score-row"><span class="label">Tổng số câu hỏi:</span><span>12</span></div>
+            <div class="score-row"><span class="label">Đã làm (xanh lá):</span><span style="color:#2ecc40; font-weight:700;">${answered} câu</span></div>
+            <div class="score-row"><span class="label">Bỏ qua (tô đỏ):</span><span style="color:#e74c3c; font-weight:700;">${skippedCount} câu</span></div>
+            <div class="score-row"><span class="label">Xem lại (màu vàng):</span><span style="color:#d4ac0d; font-weight:700;">${flaggedCount} câu</span></div>
+            <div class="score-row"><span class="label">Chưa trả lời:</span><span>${unanswered} câu</span></div>
+            <div class="score-row"><span class="label">Hoàn thành:</span><span style="color:#0070f3; font-weight:700;">${Math.round(answered/12*100)}%</span></div>
+        `;
+
+        document.getElementById('scoreModal').classList.add('show');
+    }
+
+    function closeScoreModal() {
+        document.getElementById('scoreModal').classList.remove('show');
+    }
+
+    // === RESET ===
+    function resetQuiz() {
+        currentQuestion = 0;
+        answers = new Array(12).fill(null);
+        flagged = new Array(12).fill(false);
+        skipped = new Array(12).fill(false);
+        document.getElementById('quizHeader').style.display = '';
+        document.getElementById('quizMain').classList.remove('hide');
+        document.getElementById('successScreen').classList.remove('show');
+        renderQuestion();
+        updateGrid();
+        updateNav();
+    }
+
+    // === START ===
+    init();
+</script>
+
+</body>
+</html>
